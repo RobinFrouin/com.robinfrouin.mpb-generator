@@ -1,0 +1,25 @@
+{
+  "name": "com.robinfrouin.mpb-generator",
+  "version": "1.0.0",
+  "displayName": "MPB Generator",
+  "description": "A Unity Editor tool for generating and editing Material Property Blocks from Materials and Shader Graphs.",
+  "unity": "2021.3",
+  "keywords": [
+    "material property block",
+    "mpb",
+    "shader graph",
+    "editor tool",
+    "material",
+    "renderer"
+  ],
+  "author": {
+    "name": "Robin Frouin"
+  },
+  "samples": [
+    {
+      "displayName": "Blood Splatter Example",
+      "description": "Example scene demonstrating MPB Generator with a Shader Graph blood splatter material.",
+      "path": "Samples~/BloodSplatterExample"
+    }
+  ]
+}
