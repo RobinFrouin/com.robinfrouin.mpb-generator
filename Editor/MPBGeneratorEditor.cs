@@ -276,7 +276,7 @@ public class MPBGeneratorEditor : Editor
     {
         List<string> categories = new List<string>();
 
-        foreach (MPBGenerator.ShaderPropertyData property in script.Properties)
+        foreach (ShaderPropertyData property in script.Properties)
         {
             if (property == null)
                 continue;
@@ -296,7 +296,7 @@ public class MPBGeneratorEditor : Editor
     {
         bool hasProperty = false;
 
-        foreach (MPBGenerator.ShaderPropertyData property in script.Properties)
+        foreach (ShaderPropertyData property in script.Properties)
         {
             if (property == null)
                 continue;
@@ -320,7 +320,7 @@ public class MPBGeneratorEditor : Editor
 
         EditorGUI.indentLevel++;
 
-        foreach (MPBGenerator.ShaderPropertyData property in script.Properties)
+        foreach (ShaderPropertyData property in script.Properties)
         {
             if (property == null)
                 continue;
@@ -338,7 +338,7 @@ public class MPBGeneratorEditor : Editor
         EditorGUI.indentLevel--;
     }
 
-    private static void DrawProperty(MPBGenerator.ShaderPropertyData property)
+    private static void DrawProperty(ShaderPropertyData property)
     {
         string label = string.IsNullOrWhiteSpace(property.DisplayName)
             ? ObjectNames.NicifyVariableName(property.Name.TrimStart('_'))
@@ -436,7 +436,7 @@ public class MPBGeneratorEditor : Editor
 
         Debug.Log($"[MPBGenerator] Properties count: {script.Properties.Count}");
 
-        foreach (MPBGenerator.ShaderPropertyData property in script.Properties)
+        foreach (ShaderPropertyData property in script.Properties)
         {
             if (property == null)
                 continue;

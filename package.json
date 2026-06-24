@@ -19,7 +19,7 @@
     {
       "displayName": "Blood Splatter Example",
       "description": "Example scene demonstrating MPB Generator with a Shader Graph blood splatter material.",
-      "path": "Samples~/BloodSplatterExample"
+      "path": "Samples~/BloodHandSplatter"
     }
   ]
 }
