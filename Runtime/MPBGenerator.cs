@@ -4,217 +4,218 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
-
-[ExecuteAlways]
-[RequireComponent(typeof(Renderer))]
-public class MPBGenerator : MonoBehaviour
+namespace RobinFrouin.MPBGenerator
 {
-    public int MaterialIndex = 0;
-    [Header("Source")]
-    public Material SourceMaterial;
-    public bool IncludeHiddenProperties = false;
-
-#if UNITY_EDITOR
-    [Header("Shader Graph")]
-    public UnityEngine.Object ShaderGraphAsset;
-#endif
-
-    [Header("Generated Properties")]
-    public List<ShaderPropertyData> Properties = new();
-
-    private Renderer _renderer;
-    private MaterialPropertyBlock _mpb;
-
-    private void OnEnable()
+    [ExecuteAlways]
+    [RequireComponent(typeof(Renderer))]
+    public class MPBGenerator : MonoBehaviour
     {
-        Init();
-        ApplyPropertiesToMPB();
-    }
+        public int MaterialIndex = 0;
+        [Header("Source")]
+        public Material SourceMaterial;
+        public bool IncludeHiddenProperties = false;
 
-    private void OnValidate()
-    {
-        Init();
-        ApplyPropertiesToMPB();
-    }
+        #if UNITY_EDITOR
+        [Header("Shader Graph")]
+        public UnityEngine.Object ShaderGraphAsset;
+        #endif
 
-    private void Init()
-    {
-        if (_renderer == null)
-            _renderer = GetComponent<Renderer>();
+        [Header("Generated Properties")]
+        public List<ShaderPropertyData> Properties = new();
 
-        _mpb ??= new MaterialPropertyBlock();
+        private Renderer _renderer;
+        private MaterialPropertyBlock _mpb;
 
-        if (SourceMaterial != null && _renderer != null)
-            _renderer.sharedMaterial = SourceMaterial;
-    }
-
-    [ContextMenu("Generate Properties From Source Material")]
-    public void GeneratePropertiesFromSourceMaterial()
-    {
-        Init();
-
-        if (SourceMaterial == null)
+        private void OnEnable()
         {
-            Debug.LogWarning("[MPBGenerator] No SourceMaterial assigned.", this);
-            return;
+            Init();
+            ApplyPropertiesToMPB();
         }
 
-        Dictionary<string, string> shaderGraphCategories = new();
-
-#if UNITY_EDITOR
-        shaderGraphCategories =
-            ShaderGraphCategoryParser.GetPropertyCategories(ShaderGraphAsset);
-#endif
-
-        Properties.Clear();
-
-        Shader shader = SourceMaterial.shader;
-        int propertyCount = shader.GetPropertyCount();
-
-        for (int i = 0; i < propertyCount; i++)
+        private void OnValidate()
         {
-            string propertyName = shader.GetPropertyName(i);
-            ShaderPropertyType propertyType = shader.GetPropertyType(i);
-            ShaderPropertyFlags flags = shader.GetPropertyFlags(i);
+            Init();
+            ApplyPropertiesToMPB();
+        }
 
-            if (!IncludeHiddenProperties && flags.HasFlag(ShaderPropertyFlags.HideInInspector))
-                continue;
+        private void Init()
+        {
+            if (_renderer == null)
+                _renderer = GetComponent<Renderer>();
 
-            if (!SourceMaterial.HasProperty(propertyName))
-                continue;
+            _mpb ??= new MaterialPropertyBlock();
 
-            string category = "Other";
+            if (SourceMaterial != null && _renderer != null)
+                _renderer.sharedMaterial = SourceMaterial;
+        }
 
-            if (shaderGraphCategories.TryGetValue(propertyName, out string parsedCategory))
-                category = parsedCategory;
+        [ContextMenu("Generate Properties From Source Material")]
+        public void GeneratePropertiesFromSourceMaterial()
+        {
+            Init();
 
-            ShaderPropertyData data = new ShaderPropertyData
+            if (SourceMaterial == null)
             {
-                Name = propertyName,
-                DisplayName = shader.GetPropertyDescription(i),
-                Category = category,
-                Type = propertyType,
-                Flags = flags,
-                IsToggle = IsToggleProperty(shader, i)
-            };
-
-            switch (propertyType)
-            {
-                case ShaderPropertyType.Color:
-                    data.ColorValue = SourceMaterial.GetColor(propertyName);
-                    break;
-
-                case ShaderPropertyType.Vector:
-                    data.VectorValue = SourceMaterial.GetVector(propertyName);
-                    break;
-
-                case ShaderPropertyType.Float:
-                    data.FloatValue = SourceMaterial.GetFloat(propertyName);
-                    break;
-
-                case ShaderPropertyType.Range:
-                    data.FloatValue = SourceMaterial.GetFloat(propertyName);
-                    Vector2 limits = shader.GetPropertyRangeLimits(i);
-                    data.RangeMin = limits.x;
-                    data.RangeMax = limits.y;
-                    break;
-
-                case ShaderPropertyType.Texture:
-                    data.TextureValue = SourceMaterial.GetTexture(propertyName);
-                    break;
-
-                case ShaderPropertyType.Int:
-                    data.IntValue = SourceMaterial.GetInt(propertyName);
-                    break;
+                Debug.LogWarning("[MPBGenerator] No SourceMaterial assigned.", this);
+                return;
             }
 
-            Properties.Add(data);
-        }
+            Dictionary<string, string> shaderGraphCategories = new();
 
-        ApplyPropertiesToMPB();
-    }
+#if UNITY_EDITOR
+            shaderGraphCategories =
+                ShaderGraphCategoryParser.GetPropertyCategories(ShaderGraphAsset);
+#endif
 
-    [ContextMenu("Apply Properties To MPB")]
-    public void ApplyPropertiesToMPB()
-    {
-        Init();
+            Properties.Clear();
 
-        if (_renderer == null)
-            return;
+            Shader shader = SourceMaterial.shader;
+            int propertyCount = shader.GetPropertyCount();
 
-        _renderer.GetPropertyBlock(_mpb);
-
-        foreach (ShaderPropertyData property in Properties)
-        {
-            if (property == null || string.IsNullOrEmpty(property.Name))
-                continue;
-
-            switch (property.Type)
+            for (int i = 0; i < propertyCount; i++)
             {
-                case ShaderPropertyType.Color:
-                    _mpb.SetColor(property.Name, property.ColorValue);
-                    break;
+                string propertyName = shader.GetPropertyName(i);
+                ShaderPropertyType propertyType = shader.GetPropertyType(i);
+                ShaderPropertyFlags flags = shader.GetPropertyFlags(i);
 
-                case ShaderPropertyType.Vector:
-                    _mpb.SetVector(property.Name, property.VectorValue);
-                    break;
+                if (!IncludeHiddenProperties && flags.HasFlag(ShaderPropertyFlags.HideInInspector))
+                    continue;
 
-                case ShaderPropertyType.Float:
-                case ShaderPropertyType.Range:
-                    _mpb.SetFloat(property.Name, property.FloatValue);
-                    break;
+                if (!SourceMaterial.HasProperty(propertyName))
+                    continue;
 
-                case ShaderPropertyType.Texture:
-                    if (property.TextureValue != null)
-                        _mpb.SetTexture(property.Name, property.TextureValue);
-                    break;
+                string category = "Other";
 
-                case ShaderPropertyType.Int:
-                    _mpb.SetInt(property.Name, property.IntValue);
-                    break;
+                if (shaderGraphCategories.TryGetValue(propertyName, out string parsedCategory))
+                    category = parsedCategory;
+
+                ShaderPropertyData data = new ShaderPropertyData
+                {
+                    Name = propertyName,
+                    DisplayName = shader.GetPropertyDescription(i),
+                    Category = category,
+                    Type = propertyType,
+                    Flags = flags,
+                    IsToggle = IsToggleProperty(shader, i)
+                };
+
+                switch (propertyType)
+                {
+                    case ShaderPropertyType.Color:
+                        data.ColorValue = SourceMaterial.GetColor(propertyName);
+                        break;
+
+                    case ShaderPropertyType.Vector:
+                        data.VectorValue = SourceMaterial.GetVector(propertyName);
+                        break;
+
+                    case ShaderPropertyType.Float:
+                        data.FloatValue = SourceMaterial.GetFloat(propertyName);
+                        break;
+
+                    case ShaderPropertyType.Range:
+                        data.FloatValue = SourceMaterial.GetFloat(propertyName);
+                        Vector2 limits = shader.GetPropertyRangeLimits(i);
+                        data.RangeMin = limits.x;
+                        data.RangeMax = limits.y;
+                        break;
+
+                    case ShaderPropertyType.Texture:
+                        data.TextureValue = SourceMaterial.GetTexture(propertyName);
+                        break;
+
+                    case ShaderPropertyType.Int:
+                        data.IntValue = SourceMaterial.GetInt(propertyName);
+                        break;
+                }
+
+                Properties.Add(data);
             }
+
+            ApplyPropertiesToMPB();
         }
 
-        _renderer.SetPropertyBlock(_mpb);
-    }
-
-    [ContextMenu("Clear Property Block")]
-    public void ClearPropertyBlock()
-    {
-        Init();
-
-        if (_renderer != null)
-            _renderer.SetPropertyBlock(null);
-    }
-
-    private static bool IsToggleProperty(Shader shader, int propertyIndex)
-    {
-        string propertyName = shader.GetPropertyName(propertyIndex);
-        string displayName = shader.GetPropertyDescription(propertyIndex);
-
-        string lowerName = propertyName.ToLowerInvariant();
-        string lowerDisplay = displayName.ToLowerInvariant();
-
-        if (lowerName.Contains("toggle") ||
-            lowerName.Contains("bool") ||
-            lowerDisplay.Contains("toggle") ||
-            lowerDisplay.Contains("bool"))
+        [ContextMenu("Apply Properties To MPB")]
+        public void ApplyPropertiesToMPB()
         {
-            return true;
+            Init();
+
+            if (_renderer == null)
+                return;
+
+            _renderer.GetPropertyBlock(_mpb);
+
+            foreach (ShaderPropertyData property in Properties)
+            {
+                if (property == null || string.IsNullOrEmpty(property.Name))
+                    continue;
+
+                switch (property.Type)
+                {
+                    case ShaderPropertyType.Color:
+                        _mpb.SetColor(property.Name, property.ColorValue);
+                        break;
+
+                    case ShaderPropertyType.Vector:
+                        _mpb.SetVector(property.Name, property.VectorValue);
+                        break;
+
+                    case ShaderPropertyType.Float:
+                    case ShaderPropertyType.Range:
+                        _mpb.SetFloat(property.Name, property.FloatValue);
+                        break;
+
+                    case ShaderPropertyType.Texture:
+                        if (property.TextureValue != null)
+                            _mpb.SetTexture(property.Name, property.TextureValue);
+                        break;
+
+                    case ShaderPropertyType.Int:
+                        _mpb.SetInt(property.Name, property.IntValue);
+                        break;
+                }
+            }
+
+            _renderer.SetPropertyBlock(_mpb);
         }
 
-        string[] attributes = shader.GetPropertyAttributes(propertyIndex);
-
-        foreach (string attribute in attributes)
+        [ContextMenu("Clear Property Block")]
+        public void ClearPropertyBlock()
         {
-            if (attribute.Contains("Toggle"))
+            Init();
+
+            if (_renderer != null)
+                _renderer.SetPropertyBlock(null);
+        }
+
+        private static bool IsToggleProperty(Shader shader, int propertyIndex)
+        {
+            string propertyName = shader.GetPropertyName(propertyIndex);
+            string displayName = shader.GetPropertyDescription(propertyIndex);
+
+            string lowerName = propertyName.ToLowerInvariant();
+            string lowerDisplay = displayName.ToLowerInvariant();
+
+            if (lowerName.Contains("toggle") ||
+                lowerName.Contains("bool") ||
+                lowerDisplay.Contains("toggle") ||
+                lowerDisplay.Contains("bool"))
+            {
                 return true;
-        }
+            }
 
-        return false;
+            string[] attributes = shader.GetPropertyAttributes(propertyIndex);
+
+            foreach (string attribute in attributes)
+            {
+                if (attribute.Contains("Toggle"))
+                    return true;
+            }
+
+            return false;
+        }
     }
 }
+
+
 
