@@ -16,6 +16,15 @@ namespace RobinFrouin.MPBGenerator.Editor
         private SerializedProperty _includeHiddenProperties;
         private SerializedProperty _shaderGraphAsset;
 
+        public void OnValidate()
+        {
+            if (EditorGUIUtility.GetIconForObject(target) == null)
+            {
+                SetScriptIcon();
+            }
+            GizmoUtility.SetIconEnabled(typeof(MPBGenerator), false);
+        }
+
         private void OnEnable()
         {
             _includeHiddenProperties = serializedObject.FindProperty("IncludeHiddenProperties");
@@ -24,7 +33,7 @@ namespace RobinFrouin.MPBGenerator.Editor
             {
                 SetScriptIcon();
             }
-            GizmoUtility.SetIconEnabled(typeof(MPBGeneratorList), false);
+            GizmoUtility.SetIconEnabled(typeof(MPBGenerator), false);
         }
 
         private void SetScriptIcon()
