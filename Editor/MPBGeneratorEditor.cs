@@ -20,8 +20,30 @@ namespace RobinFrouin.MPBGenerator.Editor
         {
             _includeHiddenProperties = serializedObject.FindProperty("IncludeHiddenProperties");
             _shaderGraphAsset = serializedObject.FindProperty("ShaderGraphAsset");
+            if (EditorGUIUtility.GetIconForObject(target) == null)
+            {
+                SetScriptIcon();
+            }
+            GizmoUtility.SetIconEnabled(typeof(MPBGeneratorList), false);
         }
 
+        private void SetScriptIcon()
+        {
+            Texture2D icon = AssetDatabase.LoadAssetAtPath<Texture2D>("Packages/com.robinfrouin.mpb-generator/Editor/Icons/LogoMPB.png");
+
+            if (icon == null)
+            {
+                icon = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/com.robinfrouin.mpb-generator/Editor/Icons/LogoMPB.png");
+            }
+
+            if (icon == null)
+            {
+                Debug.LogWarning("MPB Generator logo not found. This only affects the custom visual icon and does not impact the tool functionality.");
+                return;
+            }
+
+            EditorGUIUtility.SetIconForObject(target, icon);
+        }
         public override void OnInspectorGUI()
         {
             MPBGenerator script = (MPBGenerator)target;
