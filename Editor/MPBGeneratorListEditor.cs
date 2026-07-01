@@ -11,13 +11,27 @@ namespace RobinFrouin.MPBGenerator.Editor
     public class MPBGeneratorListEditor : UnityEditor.Editor
     {
 
+        public void OnValidate()
+        {
+            if (EditorGUIUtility.GetIconForObject(target) == null)
+            {
+                SetScriptIcon();
+            }
+#if UNITY_2022_2_OR_NEWER
+            GizmoUtility.SetIconEnabled(typeof(MPBGeneratorList), false);
+#endif
+        }
+
+
         public void OnEnable()
         {
             if (EditorGUIUtility.GetIconForObject(target) == null)
             {
                 SetScriptIcon();
             }
+#if UNITY_2022_2_OR_NEWER
             GizmoUtility.SetIconEnabled(typeof(MPBGeneratorList), false);
+#endif
         }
 
         private void SetScriptIcon()

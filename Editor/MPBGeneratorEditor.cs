@@ -22,7 +22,9 @@ namespace RobinFrouin.MPBGenerator.Editor
             {
                 SetScriptIcon();
             }
+#if UNITY_2022_2_OR_NEWER
             GizmoUtility.SetIconEnabled(typeof(MPBGenerator), false);
+#endif
         }
 
         private void OnEnable()
@@ -33,7 +35,9 @@ namespace RobinFrouin.MPBGenerator.Editor
             {
                 SetScriptIcon();
             }
+#if UNITY_2022_2_OR_NEWER
             GizmoUtility.SetIconEnabled(typeof(MPBGenerator), false);
+#endif
         }
 
         private void SetScriptIcon()
